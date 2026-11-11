@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/aegis/theme-provider";
+import { SwRegister } from "@/components/aegis/sw-register";
 import { BRAND } from "@/lib/brand";
 
 const geistSans = Geist({
@@ -58,6 +59,7 @@ export default function RootLayout({
       >
         <ThemeProvider>
           {children}
+          <SwRegister />
           <Toaster />
           <SonnerToaster richColors position="top-center" />
         </ThemeProvider>
