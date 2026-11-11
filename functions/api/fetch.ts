@@ -129,11 +129,12 @@ export const onRequestGet: PagesFunction<Env> = async (ctx) => {
 
   if (!range && upstream.status >= 200 && upstream.status < 300) {
     try {
-      const forCache = new Response(upstream.body, {
-        status: upstream.status,
-        headers: upstream.headers,
-      });
-      ctx.waitUntil(cache.put(cacheKey, forCache.clone()));
+      // upstream.clone() tees the underlying body stream so both the
+      // cached copy and the live client response remain independently
+      // readable. Constructing a new Response from upstream.body would
+      // *transfer* the stream, leaving upstream.body locked and making
+      // the return below throw "body has already been used" (CF 1101).
+      ctx.waitUntil(cache.put(cacheKey, upstream.clone()));
     } catch {
       // caching failure is non-fatal
     }
