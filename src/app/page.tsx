@@ -20,7 +20,8 @@ import {
   QrCode,
   KeyRound,
   ArrowRight,
-  ShieldCheck,
+  BookOpen,
+  FileCheck,
   WifiOff,
   Eye,
   Cpu,
@@ -81,7 +82,7 @@ export default function Home() {
                 Receive
               </TabsTrigger>
               <TabsTrigger value="how" className="col-span-2 py-2.5 sm:col-span-1">
-                <ShieldCheck className="size-3.5" />
+                <BookOpen className="size-3.5" />
                 How it works
               </TabsTrigger>
             </TabsList>
@@ -172,7 +173,7 @@ function Hero({ onSend }: { onSend: () => void }) {
                 }}
                 className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
               >
-                <ShieldCheck className="size-4" /> How it works
+                <BookOpen className="size-4" /> How it works
               </a>
             </div>
           </div>
@@ -315,7 +316,7 @@ function HowItWorks() {
       body: "QR frames, URL fragments, or WebRTC signaling codes — pick whatever the two devices can do. The bulk transfer itself is always direct: screen-to-camera, link-click, or peer-to-peer socket.",
     },
     {
-      icon: ShieldCheck,
+      icon: FileCheck,
       n: 4,
       title: "Verify and decrypt on the receiver",
       body: "Hash checks on QR mode, GCM auth tags everywhere else. The receiver decrypts locally — plaintext never exists on any server, because there isn't one.",

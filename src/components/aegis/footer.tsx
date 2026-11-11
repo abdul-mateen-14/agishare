@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Lock, WifiOff, Github, ShieldCheck, Zap } from "lucide-react";
+import { Lock, WifiOff, Github, Zap } from "lucide-react";
 import { BRAND } from "@/lib/brand";
 
 export function Footer() {
@@ -10,8 +10,7 @@ export function Footer() {
       <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         <div className="grid gap-6 sm:grid-cols-3">
           <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2 text-base font-bold">
-              <ShieldCheck className="size-5 text-primary" />
+            <div className="text-base font-bold tracking-tight">
               {BRAND.name}
             </div>
             <p className="text-xs text-muted-foreground max-w-xs leading-relaxed">

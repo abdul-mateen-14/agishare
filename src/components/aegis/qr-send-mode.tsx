@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useCorexStore } from "@/lib/store";
+import { useSendStore } from "@/lib/store";
 import {
   deriveKeyFromPassphrase,
   encryptCombined,
@@ -32,7 +32,7 @@ import { QrDisplay } from "./qr-display";
 import { toast } from "sonner";
 
 export function QrSendPanel() {
-  const store = useCorexStore();
+  const store = useSendStore();
   const [tab, setTab] = React.useState<"text" | "file">("text");
   const [text, setText] = React.useState("");
   const [file, setFile] = React.useState<File | null>(null);

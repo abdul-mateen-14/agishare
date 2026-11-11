@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ShieldCheck, Github } from "lucide-react";
+import { BookOpen, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./theme-toggle";
 import { BRAND } from "@/lib/brand";
@@ -32,7 +32,7 @@ export function Header() {
               el?.scrollIntoView({ behavior: "smooth" });
             }}
           >
-            <ShieldCheck className="size-4" />
+            <BookOpen className="size-4" />
             How it works
           </Button>
           <Button

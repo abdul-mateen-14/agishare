@@ -55,7 +55,7 @@ const initial: Omit<SendState, "setSend" | "reset"> = {
   rawKeyB64: null,
 };
 
-export const useCorexStore = create<SendState>((set) => ({
+export const useSendStore = create<SendState>((set) => ({
   ...initial,
   setSend: (patch) => set(patch),
   reset: () => set({ ...initial }),

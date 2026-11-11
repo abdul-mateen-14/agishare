@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useCorexStore } from "@/lib/store";
+import { useSendStore } from "@/lib/store";
 import { QrCanvas } from "./qr-canvas";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -31,7 +31,7 @@ export function QrDisplay() {
     rawKeyB64,
     keyOrigin,
     previewText,
-  } = useCorexStore();
+  } = useSendStore();
 
   // full ordered frame list: KEY (if any) first, then DATA 0..n-1
   const allFrames = React.useMemo(() => {
@@ -45,10 +45,10 @@ export function QrDisplay() {
   React.useEffect(() => {
     if (status !== "broadcasting" || allFrames.length === 0) return;
     const id = window.setInterval(() => {
-      const cur = useCorexStore.getState().cursor;
+      const cur = useSendStore.getState().cursor;
       const next = cur + 1;
       if (next >= allFrames.length) {
-        setSend({ cursor: 0, loops: useCorexStore.getState().loops + 1 });
+        setSend({ cursor: 0, loops: useSendStore.getState().loops + 1 });
       } else {
         setSend({ cursor: next });
       }
