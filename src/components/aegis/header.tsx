@@ -12,9 +12,6 @@ export function Header() {
     <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link href="/" className="group flex items-center gap-2.5">
-          <span className="relative inline-flex size-9 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/30">
-            <ShieldCheck className="size-5 text-primary" strokeWidth={2.25} />
-          </span>
           <span className="flex flex-col leading-none">
             <span className="text-base font-bold tracking-tight">
               {BRAND.name}

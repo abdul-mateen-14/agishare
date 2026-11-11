@@ -44,7 +44,7 @@
 }
 
 /* ===========================================================
-   COREX brand theme — corex.site.je
+   Aegis Share brand theme
    Emerald/teal primary, coral accent, deep slate surfaces.
    ============================================================ */
 :root {
@@ -142,53 +142,53 @@
   }
 }
 
-/* ---------- COREX utility classes ---------- */
-.corex-grid-bg {
+/* ---------- Aegis Share utility classes ---------- */
+.aegis-grid-bg {
   background-image:
     linear-gradient(to right, color-mix(in oklch, var(--foreground) 6%, transparent) 1px, transparent 1px),
     linear-gradient(to bottom, color-mix(in oklch, var(--foreground) 6%, transparent) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
-.corex-glow {
+.aegis-glow {
   box-shadow:
     0 0 0 1px color-mix(in oklch, var(--primary) 30%, transparent),
     0 8px 32px -8px color-mix(in oklch, var(--primary) 40%, transparent);
 }
 
-.corex-text-balance {
+.aegis-text-balance {
   text-wrap: balance;
 }
 
-.corex-mask-fade-y {
+.aegis-mask-fade-y {
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%);
   mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%);
 }
 
 /* Marquee for the brand chip */
-@keyframes corex-marquee {
+@keyframes aegis-marquee {
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
 }
-.corex-marquee {
-  animation: corex-marquee 32s linear infinite;
+.aegis-marquee {
+  animation: aegis-marquee 32s linear infinite;
 }
 
 /* Subtle pulsing ring for the live scanner */
-@keyframes corex-scan {
+@keyframes aegis-scan {
   0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 40%, transparent); }
   50%      { box-shadow: 0 0 0 8px color-mix(in oklch, var(--primary) 0%, transparent); }
 }
-.corex-scan-pulse { animation: corex-scan 1.6s ease-in-out infinite; }
+.aegis-scan-pulse { animation: aegis-scan 1.6s ease-in-out infinite; }
 
 /* Scanline sweep */
-@keyframes corex-sweep {
+@keyframes aegis-sweep {
   0%   { transform: translateY(-100%); opacity: 0.0; }
   20%  { opacity: 0.9; }
   80%  { opacity: 0.9; }
   100% { transform: translateY(100%); opacity: 0.0; }
 }
-.corex-sweep::after {
+.aegis-sweep::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -199,6 +199,6 @@
     transparent 100%
   );
   height: 18%;
-  animation: corex-sweep 2.2s ease-in-out infinite;
+  animation: aegis-sweep 2.2s ease-in-out infinite;
   pointer-events: none;
 }

@@ -39,7 +39,7 @@ import {
 import { useCameraScanner, type ScanResult } from "./use-camera-scanner";
 import { toast } from "sonner";
 
-export function ReceivePanel() {
+export function QrReceivePanel() {
   const store = useReceiveStore();
   const {
     status,
@@ -74,7 +74,7 @@ export function ReceivePanel() {
 
   const handleScan = React.useCallback(async (r: ScanResult) => {
     const frame = decodeFrame(r.data);
-    if (!frame) return; // ignore non-COREX QR codes
+    if (!frame) return; // ignore non-Aegis Share QR codes
     const s = useReceiveStore.getState();
 
     if (frame.m === "K") {
@@ -252,7 +252,7 @@ export function ReceivePanel() {
       if (env.kind === "text") {
         textOut = text;
       } else {
-        fileNameOut = env.name ?? "corex.bin";
+        fileNameOut = env.name ?? "aegis.bin";
         mimeOut = env.mime ?? "application/octet-stream";
       }
 
@@ -317,7 +317,7 @@ export function ReceivePanel() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = env.name ?? `corex-${Date.now()}.${env.kind === "text" ? "txt" : "bin"}`;
+      a.download = env.name ?? `aegis-${Date.now()}.${env.kind === "text" ? "txt" : "bin"}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -340,7 +340,7 @@ export function ReceivePanel() {
             Camera
           </CardTitle>
           <CardDescription className="text-[11px]">
-            Aim at the sender&apos;s screen. We ignore non-COREX QR codes.
+            Aim at the sender&apos;s screen. We ignore non-Aegis Share QR codes.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -356,7 +356,7 @@ export function ReceivePanel() {
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <div
                 className={`relative h-3/4 w-4/5 rounded-lg border-2 border-primary/70 ${
-                  cameraState.kind === "running" ? "corex-sweep" : ""
+                  cameraState.kind === "running" ? "aegis-sweep" : ""
                 }`}
                 style={{
                   boxShadow:
@@ -534,7 +534,7 @@ export function ReceivePanel() {
             <CardDescription className="text-[11px]">
               {sessionId
                 ? `session ${sessionId} — ${have}/${expectedTotal} frames`
-                : "Waiting for first COREX frame…"}
+                : "Waiting for first Aegis Share frame…"}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">

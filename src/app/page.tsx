@@ -1,13 +1,19 @@
 "use client";
 
 import * as React from "react";
-import { Header } from "@/components/corex/header";
-import { Footer } from "@/components/corex/footer";
-import { SendPanel } from "@/components/corex/send-panel";
-import { ReceivePanel } from "@/components/corex/receive-panel";
+import { Header } from "@/components/aegis/header";
+import { Footer } from "@/components/aegis/footer";
+import { SendPanel, type SendMode } from "@/components/aegis/send-panel";
+import { ReceivePanel, type ReceiveMode } from "@/components/aegis/receive-panel";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Lock,
   Camera,
@@ -19,19 +25,51 @@ import {
   Eye,
   Cpu,
   Globe2,
-  FileText,
+  Link2,
+  Wifi,
   Zap,
 } from "lucide-react";
 import { BRAND } from "@/lib/brand";
 
+/** Detect Aegis share-link fragments (#a1.…) so they can be auto-received. */
+function useHashPayload(): [string | null, () => void] {
+  const [hash, setHash] = React.useState<string | null>(null);
+  React.useEffect(() => {
+    const check = () => {
+      const h = typeof window !== "undefined" ? window.location.hash : "";
+      if (h.startsWith("#a1.")) setHash(h);
+    };
+    check();
+    window.addEventListener("hashchange", check);
+    return () => window.removeEventListener("hashchange", check);
+  }, []);
+  const consume = React.useCallback(() => {
+    if (typeof window !== "undefined" && window.location.hash.startsWith("#a1.")) {
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+    setHash(null);
+  }, []);
+  return [hash, consume];
+}
+
 export default function Home() {
+  const [sendMode, setSendMode] = React.useState<SendMode>("qr");
+  const [receiveMode, setReceiveMode] = React.useState<ReceiveMode>("qr");
+  const [hashPayload, consumeHash] = useHashPayload();
+  const [tab, setTab] = React.useState<string>("send");
+
+  // opening a share link jumps straight to the receive tab
+  React.useEffect(() => {
+    if (hashPayload) setTab("receive");
+  }, [hashPayload]);
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex-1">
-        <Hero />
+        <Hero onSend={() => setTab("send")} />
         <section className="mx-auto w-full max-w-6xl px-4 sm:px-6 pb-16">
-          <Tabs defaultValue="send" className="w-full">
+          <Tabs value={tab} onValueChange={setTab} className="w-full">
             <TabsList className="grid h-auto w-full grid-cols-2 sm:grid-cols-3">
               <TabsTrigger value="send" className="py-2.5">
                 <ArrowRight className="size-3.5" />
@@ -47,10 +85,15 @@ export default function Home() {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="send" className="mt-6">
-              <SendPanel />
+              <SendPanel mode={sendMode} onModeChange={setSendMode} />
             </TabsContent>
             <TabsContent value="receive" className="mt-6">
-              <ReceivePanel />
+              <ReceivePanel
+                mode={receiveMode}
+                onModeChange={setReceiveMode}
+                hashPayload={hashPayload}
+                onHashConsumed={consumeHash}
+              />
             </TabsContent>
             <TabsContent value="how" className="mt-6">
               <HowItWorks />
@@ -66,11 +109,10 @@ export default function Home() {
 /* =====================================================
    Hero
    ==================================================== */
-function Hero() {
+function Hero({ onSend }: { onSend: () => void }) {
   return (
     <section className="relative overflow-hidden border-b border-border/60">
-      {/* QR-grid background */}
-      <div className="corex-grid-bg absolute inset-0 opacity-30" aria-hidden />
+      <div className="aegis-grid-bg absolute inset-0 opacity-30" aria-hidden />
       <div
         className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background"
         aria-hidden
@@ -82,15 +124,17 @@ function Hero() {
               <span className="size-1.5 rounded-full bg-primary animate-pulse" />
               serverless · encrypted · cross-device
             </Badge>
-            <h1 className="text-balance text-3xl font-bold leading-[1.1] tracking-tight sm:text-5xl">
-              <span className="font-mono tracking-[0.18em]">{BRAND.name}</span>
-              <span className="block text-primary mt-2 text-2xl sm:text-3xl">
-                Encrypted transfers via QR codes.
+            <h1 className="aegis-text-balance text-3xl font-bold leading-[1.1] tracking-tight sm:text-5xl">
+              <span className="text-2xl sm:text-4xl">{BRAND.name}</span>
+              <span className="block text-primary mt-2 text-xl sm:text-2xl">
+                Encrypted transfers — QR, links, or direct P2P.
               </span>
             </h1>
             <p className="text-pretty max-w-xl text-sm text-muted-foreground sm:text-base leading-relaxed">
-              {BRAND.description} No servers, no accounts, no internet — just
-              a screen, a camera, and end-to-end AES-GCM 256 encryption.
+              Three ways to move data without a server. Small files as animated
+              QR codes or encrypted share links; multi-GB files streaming
+              device-to-device over WebRTC — the browser&apos;s AirDrop. Every
+              byte is AES-GCM 256 encrypted in your browser first.
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="outline" className="font-mono text-[11px]">
@@ -103,24 +147,27 @@ function Hero() {
                 <Globe2 className="mr-1 size-3" /> Any device
               </Badge>
               <Badge variant="outline" className="font-mono text-[11px]">
-                <Cpu className="mr-1 size-3" /> Web Crypto
+                <Zap className="mr-1 size-3" /> GB-scale P2P
+              </Badge>
+              <Badge variant="outline" className="font-mono text-[11px]">
+                <Cpu className="mr-1 size-3" /> Static hosting
               </Badge>
             </div>
             <div className="flex flex-wrap gap-3 pt-2">
-              <a
-                href="#send"
-                onClick={(e) => {
-                  e.preventDefault();
-                  document.querySelector('[data-value="send"]')?.dispatchEvent(
-                    new MouseEvent("click", { bubbles: true }),
-                  );
-                }}
+              <button
+                onClick={onSend}
                 className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90"
               >
                 <ArrowRight className="size-4" /> Start sending
-              </a>
+              </button>
               <a
                 href="#how-it-works"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.querySelector('[value="how"]')?.dispatchEvent(
+                    new MouseEvent("click", { bubbles: true }),
+                  );
+                }}
                 className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
               >
                 <ShieldCheck className="size-4" /> How it works
@@ -128,7 +175,6 @@ function Hero() {
             </div>
           </div>
 
-          {/* Visual mock */}
           <div className="relative mx-auto hidden w-[280px] md:block">
             <HeroMock />
           </div>
@@ -139,10 +185,9 @@ function Hero() {
 }
 
 function HeroMock() {
-  // Tiny decorative QR mock — two halves (sender + receiver) meeting
   return (
     <div className="relative space-y-3">
-      <div className="rounded-2xl border border-primary/30 bg-card p-4 shadow-lg corex-glow">
+      <div className="rounded-2xl border border-primary/30 bg-card p-4 shadow-lg aegis-glow">
         <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
           <span>sender</span>
           <span className="text-primary">broadcasting</span>
@@ -159,21 +204,18 @@ function HeroMock() {
                 className={`aspect-square rounded-[1px] ${
                   on ? "bg-primary" : "bg-primary/10"
                 }`}
-                style={{
-                  animationDelay: `${i * 4}ms`,
-                }}
               />
             );
           })}
         </div>
         <div className="mt-3 flex items-center justify-between text-[10px] font-mono text-muted-foreground">
-          <span>corex1{`{m:"D",i:3,n:12,…}`}</span>
+          <span>aegis1{`{m:"D",i:3,n:12,…}`}</span>
           <span className="text-accent">▮▯▯▯</span>
         </div>
       </div>
 
-      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full border border-border bg-background px-2 py-1 text-[10px] font-mono text-muted-foreground">
-        camera scan
+      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-10 rounded-full border border-border bg-background px-2 py-1 text-[10px] font-mono text-muted-foreground">
+        qr · link · p2p
       </div>
 
       <div className="ml-auto w-[80%] rounded-2xl border border-accent/30 bg-card p-3 shadow">
@@ -198,74 +240,129 @@ function HeroMock() {
    How it works
    ==================================================== */
 function HowItWorks() {
+  const methods = [
+    {
+      icon: QrCode,
+      title: "QR codes — small files, phone-friendly",
+      range: "up to ~1.5 MB",
+      points: [
+        "Payload encrypted with AES-GCM 256, sliced into ~850-byte chunks.",
+        "Each chunk becomes a QR frame {index, total, session, sha-256, data} — the sender's screen cycles through them like a flipbook.",
+        "The receiver's camera + jsQR accumulates frames in any order until all n arrive; hash verified, then decrypted.",
+        "Keys travel as a separate Key QR (auto mode) or a passphrase you share out-of-band (PBKDF2 150k iterations).",
+      ],
+      best: "Phone ↔ anything. No camera on the sender? Use links or P2P.",
+    },
+    {
+      icon: Link2,
+      title: "Share links — small files, laptop-friendly",
+      range: "up to ~90 KB per link",
+      points: [
+        "The encrypted payload lives in the URL fragment: aegishare.app/#a1.…",
+        "Fragments never reach the server — Cloudflare Pages only sees a request for '/'. Zero server involvement, still works on static hosting.",
+        "Passphrase mode: only the PBKDF2 salt rides in the link; the passphrase goes over a second channel. Auto mode: the key is in the link itself (whoever has the link can decrypt).",
+        "Receiver opens the link, decryption happens instantly in their browser.",
+      ],
+      best: "Laptop ↔ laptop. Share via chat, email, whatever — no camera needed.",
+    },
+    {
+      icon: Wifi,
+      title: "Direct P2P — large files, Wi-Fi/LAN/internet",
+      range: "MB to GB (memory-flat streaming)",
+      points: [
+        "WebRTC data channels carry the file bytes directly between the two browsers — no relay server, no upload/download.",
+        "Signaling is the only handshake needed: the SDP offer/answer (~3 KB) travels as QR frames or a copy-paste code, whichever suits your devices.",
+        "File is encrypted in 64 KB AES-GCM chunks (per-chunk IV = sessionId + chunk index) before touching the channel — WebRTC is just a tunnel for ciphertext.",
+        "Backpressure-aware sender + chunk-by-chunk decryption keeps memory flat, so 4 GB works like 4 MB.",
+        "Free public STUN servers assist NAT traversal; after that everything is direct P2P.",
+      ],
+      best: "Any two devices with browsers. The fast lane for real files.",
+    },
+  ];
+
   const steps = [
     {
       icon: Lock,
       n: 1,
       title: "Encrypt locally",
-      body: "You paste text or drop a file. COREX encrypts it in your browser using AES-GCM 256-bit with the Web Crypto API. The key never leaves your device unencrypted.",
+      body: "Everything is encrypted in your browser with the Web Crypto API (AES-GCM 256). Keys never leave the device unencrypted — not even the P2P handshake carries plaintext.",
     },
     {
-      icon: QrCode,
+      icon: KeyRound,
       n: 2,
-      title: "Slice into QR frames",
-      body: "The encrypted blob is split into ~1 KB chunks. Each chunk gets a header with its index, total, session id and SHA-256 hash, then rendered as a QR code.",
+      title: "Share the key out-of-band",
+      body: "Passphrase mode derives the AES key via PBKDF2-SHA256 (150k iterations, random salt). Auto mode mints a random 256-bit key you scan or paste once.",
     },
     {
       icon: Eye,
       n: 3,
-      title: "Broadcast visually",
-      body: "Your screen cycles through the QR frames at ~5 fps. The receiver's camera sees them — no network, no Bluetooth, no WebRTC, no relay server.",
-    },
-    {
-      icon: KeyRound,
-      n: 4,
-      title: "Share the key out-of-band",
-      body: "Either type a passphrase (PBKDF2-derived) or let COREX generate a random key shown as a separate Key QR. The receiver scans it first, or pastes the key.",
-    },
-    {
-      icon: Camera,
-      n: 5,
-      title: "Reassemble + verify",
-      body: "The receiver accumulates chunks by session id. Once all n are present, COREX verifies the SHA-256 hash matches the frame header, then reassembles.",
+      title: "Move data over the side channel",
+      body: "QR frames, URL fragments, or WebRTC signaling codes — pick whatever the two devices can do. The bulk transfer itself is always direct: screen-to-camera, link-click, or peer-to-peer socket.",
     },
     {
       icon: ShieldCheck,
-      n: 6,
-      title: "Decrypt on the receiver",
-      body: "The receiver's browser derives the same key from the passphrase + salt, or uses the pasted/scanned key, and runs AES-GCM decryption. The plaintext is shown or downloaded.",
+      n: 4,
+      title: "Verify and decrypt on the receiver",
+      body: "Hash checks on QR mode, GCM auth tags everywhere else. The receiver decrypts locally — plaintext never exists on any server, because there isn't one.",
     },
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" id="how-it-works">
       <div className="space-y-2">
         <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-          How COREX works
+          How {BRAND.name} works
         </h2>
         <p className="max-w-2xl text-sm text-muted-foreground">
-          A truly serverless data transfer protocol. Everything happens in
-          your browser; data moves over the air as QR codes; encryption keys
-          never touch a server.
+          A truly serverless transfer suite. Pick the method that fits your
+          devices — all three run entirely client-side and deploy as static
+          files on Cloudflare Pages.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
+        {methods.map((m) => (
+          <Card key={m.title} className="relative overflow-hidden">
+            <CardHeader>
+              <div className="mb-2 inline-flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <m.icon className="size-5" />
+              </div>
+              <CardTitle className="text-base leading-snug">{m.title}</CardTitle>
+              <Badge variant="secondary" className="font-mono text-[10px] w-fit">
+                {m.range}
+              </Badge>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <ul className="space-y-1.5 text-sm text-muted-foreground leading-relaxed">
+                {m.points.map((p, i) => (
+                  <li key={i} className="flex gap-1.5">
+                    <span className="mt-1.5 size-1 shrink-0 rounded-full bg-primary" />
+                    {p}
+                  </li>
+                ))}
+              </ul>
+              <p className="rounded-md bg-muted/40 p-2 text-xs text-muted-foreground">
+                <b className="text-foreground">Best for:</b> {m.best}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {steps.map((s) => (
           <Card key={s.n} className="relative overflow-hidden">
-            <div className="pointer-events-none absolute -right-4 -top-4 text-7xl font-bold text-primary/10 select-none">
+            <div className="pointer-events-none absolute -right-2 -top-3 text-6xl font-bold text-primary/10 select-none">
               {s.n}
             </div>
             <CardHeader>
-              <div className="mb-2 inline-flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <s.icon className="size-5" />
+              <div className="mb-1 inline-flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <s.icon className="size-4" />
               </div>
-              <CardTitle className="text-base">{s.title}</CardTitle>
+              <CardTitle className="text-sm">{s.title}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {s.body}
-              </p>
+              <p className="text-xs text-muted-foreground leading-relaxed">{s.body}</p>
             </CardContent>
           </Card>
         ))}
@@ -277,112 +374,37 @@ function HowItWorks() {
             <Zap className="size-4 text-accent" />
             Practical tips
           </CardTitle>
-          <CardDescription>
-            How to get reliable transfers in the real world.
-          </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 text-sm md:grid-cols-2">
           <div className="space-y-1.5">
-            <div className="font-medium text-foreground">Frame dwell time</div>
+            <div className="font-medium">QR speed</div>
             <p className="text-muted-foreground">
-              Lower-end phones can&apos;t scan faster than ~5 fps. Keep the
-              sender at 200&ndash;400 ms per frame for reliable transfer.
+              Keep the sender at 200–400 ms per frame; crank screen brightness.
+              ~130 frames ≈ 100 KB in under 30 seconds.
             </p>
           </div>
           <div className="space-y-1.5">
-            <div className="font-medium text-foreground">Screen brightness</div>
+            <div className="font-medium">Link length</div>
             <p className="text-muted-foreground">
-              Crank the sender&apos;s screen to maximum brightness. Camera
-              exposure adapts to bright screens far better than dim ones.
+              Links under ~4,000 chars paste cleanly into any chat app. Longer
+              links still work in email/Telegram — watch the char counter.
             </p>
           </div>
           <div className="space-y-1.5">
-            <div className="font-medium text-foreground">Distance</div>
+            <div className="font-medium">P2P networks</div>
             <p className="text-muted-foreground">
-              10&ndash;25 cm between the receiver&apos;s camera and the
-              sender&apos;s screen is the sweet spot for QR readability.
+              Same Wi-Fi = fastest. Across the internet, throughput follows
+              your upload bandwidth. Symmetric-NAT networks may block direct
+              P2P (no TURN relay is used).
             </p>
           </div>
           <div className="space-y-1.5">
-            <div className="font-medium text-foreground">Size limits</div>
+            <div className="font-medium">Same-device demo</div>
             <p className="text-muted-foreground">
-              We cap payloads at ~1.5 MB. A 100 KB file is roughly 130 frames
-              and scans in under 30 seconds.
+              Open two browser windows: Send in one, Receive in the other, and
+              copy-paste the codes between them.
             </p>
           </div>
-          <div className="space-y-1.5">
-            <div className="font-medium text-foreground">Use passphrase mode for sensitive data</div>
-            <p className="text-muted-foreground">
-              Auto-key mode is convenient but anyone who can scan your screen
-              captures the key. For passwords or secrets, use passphrase mode.
-            </p>
-          </div>
-          <div className="space-y-1.5">
-            <div className="font-medium text-foreground">Demo on one device</div>
-            <p className="text-muted-foreground">
-              Open COREX in two browser windows (or two tabs), put Send on one
-              and Receive on the other, and point your phone&apos;s camera at
-              the screen — or vice versa.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="size-4" />
-            Protocol reference
-          </CardTitle>
-          <CardDescription>
-            What actually travels over the air.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm">
-          <p className="text-muted-foreground">
-            Every QR frame starts with the magic prefix{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">COREX1</code>{" "}
-            so the receiver ignores non-COREX QR codes (event tickets, URLs,
-            restaurant menus, …).
-          </p>
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="rounded-lg border border-border bg-muted/30 p-3">
-              <div className="text-xs font-mono font-bold uppercase tracking-wider text-primary">
-                Key frame
-              </div>
-              <pre className="mt-2 overflow-x-auto text-[11px] font-mono leading-relaxed">
-{`COREX1{
-  "m":"K",
-  "o":"auto"|"passphrase",
-  "k":"<base64 raw key>",   // auto only
-  "s":"<base64 salt>"      // passphrase only
-}`}
-              </pre>
-            </div>
-            <div className="rounded-lg border border-border bg-muted/30 p-3">
-              <div className="text-xs font-mono font-bold uppercase tracking-wider text-primary">
-                Data frame
-              </div>
-              <pre className="mt-2 overflow-x-auto text-[11px] font-mono leading-relaxed">
-{`COREX1{
-  "m":"D",
-  "i":<chunk index 0..n-1>,
-  "n":<total chunks>,
-  "s":"<session id>",
-  "h":"<sha256 hex of iv||ct>",
-  "d":"<base64 chunk>"
-}`}
-              </pre>
-            </div>
-          </div>
-          <p className="text-muted-foreground">
-            The encrypted payload itself is{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">
-              iv (12 B) || ciphertext+authTag
-            </code>{" "}
-            produced by AES-GCM 256. The IV travels inside chunk 0, so no
-            separate IV channel is required.
-          </p>
         </CardContent>
       </Card>
     </div>

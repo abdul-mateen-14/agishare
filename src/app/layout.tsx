@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
-import { ThemeProvider } from "@/components/corex/theme-provider";
+import { ThemeProvider } from "@/components/aegis/theme-provider";
 import { BRAND } from "@/lib/brand";
 
 const geistSans = Geist({
@@ -21,20 +21,17 @@ export const metadata: Metadata = {
   description: BRAND.description,
   keywords: [
     BRAND.name,
-    "QR",
-    "QR code",
-    "encrypted",
+    "encrypted file transfer",
     "serverless",
-    "offline transfer",
-    "AES-GCM",
-    "secure",
+    "QR code",
+    "WebRTC",
     "peer-to-peer",
-    "corex.site.je",
+    "AES-GCM",
+    "share link",
+    "offline transfer",
+    BRAND.domain,
   ],
   authors: [{ name: BRAND.name }],
-  icons: {
-    icon: "/corex-logo.svg",
-  },
   openGraph: {
     title: `${BRAND.name} — ${BRAND.tagline}`,
     description: BRAND.description,

@@ -55,7 +55,16 @@ export type DataFrame = {
   d: string; // base64 chunk of ciphertext
 };
 
-export type AnyFrame = KeyFrame | DataFrame;
+export type SignalFrame = {
+  m: "S";
+  r: "offer" | "answer";
+  id: string;
+  i: number;
+  n: number;
+  p: string; // base64 chunk of the signaling JSON
+};
+
+export type AnyFrame = KeyFrame | DataFrame | SignalFrame;
 
 /* ---------- frame (de)serialisation ---------- */
 
@@ -67,7 +76,11 @@ export function decodeFrame(raw: string): AnyFrame | null {
   if (!raw.startsWith(PROTOCOL.magic)) return null;
   try {
     const obj = JSON.parse(raw.slice(PROTOCOL.magic.length));
-    if (obj && typeof obj === "object" && (obj.m === "K" || obj.m === "D")) {
+    if (
+      obj &&
+      typeof obj === "object" &&
+      (obj.m === "K" || obj.m === "D" || obj.m === "S")
+    ) {
       return obj as AnyFrame;
     }
   } catch {

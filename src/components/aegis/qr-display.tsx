@@ -83,7 +83,7 @@ export function QrDisplay() {
       <div className="relative mx-auto w-full max-w-[320px]">
         <div
           className={`relative overflow-hidden rounded-2xl bg-white p-3 shadow-lg ring-1 ring-primary/20 ${
-            status === "broadcasting" ? "corex-scan-pulse" : ""
+            status === "broadcasting" ? "aegis-scan-pulse" : ""
           }`}
         >
           <QrCanvas value={currentFrame} size={frameSize} className="size-full" />

@@ -1,5 +1,5 @@
 /**
- * COREX client state — Zustand store.
+ * Aegis Share client state — Zustand store.
  * Holds everything the sender/receiver needs in memory. No persistence,
  * no servers: state lives only for the current browser session.
  */
