@@ -1,5 +1,5 @@
 /**
- * QR framing protocol for COREX.
+ * QR framing protocol for Aegis Share.
  *
  * Two kinds of QR frames travel over the air:
  *
@@ -19,8 +19,17 @@
  * frames for session `s` are present AND their concatenated bytes hash to `h`,
  * the ciphertext is complete and ready for decryption.
  *
- * Frames are prefixed with the COREX magic so the scanner can ignore other QR
+ * Frames are prefixed with the Aegis magic so the scanner can ignore other QR
  * codes the camera happens to see (event tickets, URL QRs, etc.).
+ *
+ * For large-file mode (WebRTC) the same magic prefix wraps signaling frames:
+ *
+ *  3. SIGNAL frame — `{m:"S", role:"offer"|"answer", id:<sessionId>,
+ *                      i:<idx>, n:<total>, sdp:<base64 SDP>,
+ *                      meta?:<base64 JSON of {name,size,mime,salt,totalChunks,hash}>}`
+ *                     Only the offer carries `meta`. The role's sender shows
+ *                     these QRs; the other side scans and reconstructs the
+ *                     full SDP, then shows its own SIGNAL frames back.
  */
 
 import { PROTOCOL } from "./brand";

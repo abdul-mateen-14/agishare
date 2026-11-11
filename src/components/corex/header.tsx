@@ -11,38 +11,12 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link href="/" className="group flex items-center gap-3">
+        <Link href="/" className="group flex items-center gap-2.5">
           <span className="relative inline-flex size-9 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/30">
-            {/* Inline logo so we can theme it */}
-            <svg
-              viewBox="0 0 64 64"
-              className="size-6"
-              fill="none"
-              aria-hidden="true"
-            >
-              <defs>
-                <linearGradient id="cx-hdr" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="var(--primary)" />
-                  <stop offset="1" stopColor="var(--accent)" />
-                </linearGradient>
-              </defs>
-              <path
-                d="M32 2 L58 16 V48 L32 62 L6 48 V16 Z"
-                fill="none"
-                stroke="url(#cx-hdr)"
-                strokeWidth="3.5"
-                strokeLinejoin="round"
-              />
-              <g fill="url(#cx-hdr)">
-                <rect x="20" y="20" width="6" height="6" rx="1" />
-                <rect x="38" y="20" width="6" height="6" rx="1" />
-                <rect x="20" y="38" width="6" height="6" rx="1" />
-                <rect x="32" y="32" width="6" height="6" rx="1" />
-              </g>
-            </svg>
+            <ShieldCheck className="size-5 text-primary" strokeWidth={2.25} />
           </span>
           <span className="flex flex-col leading-none">
-            <span className="font-mono text-base font-bold tracking-[0.22em]">
+            <span className="text-base font-bold tracking-tight">
               {BRAND.name}
             </span>
             <span className="text-[10px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
@@ -71,10 +45,10 @@ export function Header() {
             className="hidden sm:inline-flex"
           >
             <a
-              href="https://corex.site.je"
+              href={`https://${BRAND.domain}`}
               target="_blank"
               rel="noreferrer noopener"
-              aria-label="COREX site"
+              aria-label="Aegis Share site"
             >
               <Github className="size-4" />
             </a>
