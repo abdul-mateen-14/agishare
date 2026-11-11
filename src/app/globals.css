@@ -1,0 +1,204 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ===========================================================
+   COREX brand theme — corex.site.je
+   Emerald/teal primary, coral accent, deep slate surfaces.
+   ============================================================ */
+:root {
+  --radius: 0.75rem;
+
+  /* Light mode — fresh mint, high contrast text */
+  --background: oklch(0.99 0.005 175);
+  --foreground: oklch(0.16 0.02 175);
+  --card: oklch(1 0.003 175);
+  --card-foreground: oklch(0.16 0.02 175);
+  --popover: oklch(1 0.003 175);
+  --popover-foreground: oklch(0.16 0.02 175);
+
+  /* Brand primary — emerald-teal */
+  --primary: oklch(0.68 0.14 175);
+  --primary-foreground: oklch(0.99 0.01 175);
+
+  --secondary: oklch(0.96 0.012 175);
+  --secondary-foreground: oklch(0.22 0.03 175);
+  --muted: oklch(0.95 0.01 175);
+  --muted-foreground: oklch(0.48 0.02 175);
+
+  /* Accent — warm coral/amber for highlights */
+  --accent: oklch(0.78 0.16 55);
+  --accent-foreground: oklch(0.16 0.02 175);
+
+  --destructive: oklch(0.6 0.22 25);
+  --border: oklch(0.9 0.015 175);
+  --input: oklch(0.92 0.015 175);
+  --ring: oklch(0.68 0.14 175);
+
+  --chart-1: oklch(0.68 0.14 175);
+  --chart-2: oklch(0.78 0.16 55);
+  --chart-3: oklch(0.62 0.13 200);
+  --chart-4: oklch(0.72 0.15 90);
+  --chart-5: oklch(0.55 0.2 30);
+
+  --sidebar: oklch(0.985 0.005 175);
+  --sidebar-foreground: oklch(0.16 0.02 175);
+  --sidebar-primary: oklch(0.68 0.14 175);
+  --sidebar-primary-foreground: oklch(0.99 0.01 175);
+  --sidebar-accent: oklch(0.95 0.01 175);
+  --sidebar-accent-foreground: oklch(0.22 0.03 175);
+  --sidebar-border: oklch(0.9 0.015 175);
+  --sidebar-ring: oklch(0.68 0.14 175);
+}
+
+.dark {
+  /* Dark mode — deep teal-tinted slate */
+  --background: oklch(0.14 0.018 175);
+  --foreground: oklch(0.96 0.01 175);
+  --card: oklch(0.19 0.022 175);
+  --card-foreground: oklch(0.96 0.01 175);
+  --popover: oklch(0.21 0.025 175);
+  --popover-foreground: oklch(0.96 0.01 175);
+
+  --primary: oklch(0.78 0.16 175);
+  --primary-foreground: oklch(0.13 0.02 175);
+
+  --secondary: oklch(0.26 0.025 175);
+  --secondary-foreground: oklch(0.96 0.01 175);
+  --muted: oklch(0.24 0.02 175);
+  --muted-foreground: oklch(0.68 0.02 175);
+
+  --accent: oklch(0.78 0.16 55);
+  --accent-foreground: oklch(0.14 0.02 175);
+
+  --destructive: oklch(0.66 0.2 25);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.78 0.16 175);
+
+  --chart-1: oklch(0.78 0.16 175);
+  --chart-2: oklch(0.78 0.16 55);
+  --chart-3: oklch(0.65 0.14 200);
+  --chart-4: oklch(0.7 0.15 90);
+  --chart-5: oklch(0.6 0.22 30);
+
+  --sidebar: oklch(0.16 0.02 175);
+  --sidebar-foreground: oklch(0.96 0.01 175);
+  --sidebar-primary: oklch(0.78 0.16 175);
+  --sidebar-primary-foreground: oklch(0.13 0.02 175);
+  --sidebar-accent: oklch(0.24 0.02 175);
+  --sidebar-accent-foreground: oklch(0.96 0.01 175);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.78 0.16 175);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+/* ---------- COREX utility classes ---------- */
+.corex-grid-bg {
+  background-image:
+    linear-gradient(to right, color-mix(in oklch, var(--foreground) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklch, var(--foreground) 6%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.corex-glow {
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--primary) 30%, transparent),
+    0 8px 32px -8px color-mix(in oklch, var(--primary) 40%, transparent);
+}
+
+.corex-text-balance {
+  text-wrap: balance;
+}
+
+.corex-mask-fade-y {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%);
+}
+
+/* Marquee for the brand chip */
+@keyframes corex-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.corex-marquee {
+  animation: corex-marquee 32s linear infinite;
+}
+
+/* Subtle pulsing ring for the live scanner */
+@keyframes corex-scan {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 40%, transparent); }
+  50%      { box-shadow: 0 0 0 8px color-mix(in oklch, var(--primary) 0%, transparent); }
+}
+.corex-scan-pulse { animation: corex-scan 1.6s ease-in-out infinite; }
+
+/* Scanline sweep */
+@keyframes corex-sweep {
+  0%   { transform: translateY(-100%); opacity: 0.0; }
+  20%  { opacity: 0.9; }
+  80%  { opacity: 0.9; }
+  100% { transform: translateY(100%); opacity: 0.0; }
+}
+.corex-sweep::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    color-mix(in oklch, var(--primary) 40%, transparent) 50%,
+    transparent 100%
+  );
+  height: 18%;
+  animation: corex-sweep 2.2s ease-in-out infinite;
+  pointer-events: none;
+}
