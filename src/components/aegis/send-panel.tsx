@@ -4,9 +4,10 @@ import * as React from "react";
 import { QrSendPanel } from "./qr-send-mode";
 import { LinkSendPanel } from "./link-panel";
 import { P2pSendPanel } from "./p2p-send-panel";
-import { QrCode, Link2, Wifi } from "lucide-react";
+import { BoosterPanel } from "./booster-panel";
+import { QrCode, Link2, Wifi, Rocket } from "lucide-react";
 
-export type SendMode = "qr" | "link" | "p2p";
+export type SendMode = "qr" | "link" | "p2p" | "booster";
 
 export function SendPanel({
   mode,
@@ -19,12 +20,13 @@ export function SendPanel({
     { id: "qr", label: "QR codes", hint: "phones · up to 1.5 MB", icon: QrCode },
     { id: "link", label: "Share link", hint: "laptops · small files", icon: Link2 },
     { id: "p2p", label: "Direct P2P", hint: "Wi-Fi/LAN · GB-scale", icon: Wifi },
+    { id: "booster", label: "Booster", hint: "fast fetch any URL", icon: Rocket },
   ];
 
   return (
     <div className="space-y-5">
       {/* mode selector */}
-      <div className="grid grid-cols-3 gap-2" role="tablist" aria-label="Send mode">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" role="tablist" aria-label="Send mode">
         {modes.map((m) => {
           const active = mode === m.id;
           const Icon = m.icon;
@@ -51,6 +53,7 @@ export function SendPanel({
       {mode === "qr" && <QrSendPanel />}
       {mode === "link" && <LinkSendPanel />}
       {mode === "p2p" && <P2pSendPanel />}
+      {mode === "booster" && <BoosterPanel />}
     </div>
   );
 }

@@ -28,6 +28,7 @@ import {
   Link2,
   Wifi,
   Zap,
+  Rocket,
 } from "lucide-react";
 import { BRAND } from "@/lib/brand";
 
@@ -122,26 +123,27 @@ function Hero({ onSend }: { onSend: () => void }) {
           <div className="space-y-5">
             <Badge variant="secondary" className="font-mono text-[10px] uppercase tracking-wider">
               <span className="size-1.5 rounded-full bg-primary animate-pulse" />
-              serverless · encrypted · cross-device
+              serverless · encrypted · cross-device · edge-cached
             </Badge>
             <h1 className="aegis-text-balance text-3xl font-bold leading-[1.1] tracking-tight sm:text-5xl">
               <span className="text-2xl sm:text-4xl">{BRAND.name}</span>
               <span className="block text-primary mt-2 text-xl sm:text-2xl">
-                Encrypted transfers — QR, links, or direct P2P.
+                Encrypted transfers — QR, links, P2P, or fast-fetch any URL.
               </span>
             </h1>
             <p className="text-pretty max-w-xl text-sm text-muted-foreground sm:text-base leading-relaxed">
-              Three ways to move data without a server. Small files as animated
-              QR codes or encrypted share links; multi-GB files streaming
-              device-to-device over WebRTC — the browser&apos;s AirDrop. Every
-              byte is AES-GCM 256 encrypted in your browser first.
+              Four ways to move data without a server. Small files as animated
+              QR codes or encrypted share links. Multi-GB files streaming
+              device-to-device over WebRTC — the browser&apos;s AirDrop. Plus a
+              Download Booster that fetches any public URL through
+              Cloudflare&apos;s edge cache for instant downloads.
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="outline" className="font-mono text-[11px]">
                 <Lock className="mr-1 size-3" /> AES-GCM 256
               </Badge>
               <Badge variant="outline" className="font-mono text-[11px]">
-                <WifiOff className="mr-1 size-3" /> No server
+                <WifiOff className="mr-1 size-3" /> No server for transfers
               </Badge>
               <Badge variant="outline" className="font-mono text-[11px]">
                 <Globe2 className="mr-1 size-3" /> Any device
@@ -150,7 +152,7 @@ function Hero({ onSend }: { onSend: () => void }) {
                 <Zap className="mr-1 size-3" /> GB-scale P2P
               </Badge>
               <Badge variant="outline" className="font-mono text-[11px]">
-                <Cpu className="mr-1 size-3" /> Static hosting
+                <Rocket className="mr-1 size-3" /> Edge-cached fetch
               </Badge>
             </div>
             <div className="flex flex-wrap gap-3 pt-2">
@@ -258,7 +260,7 @@ function HowItWorks() {
       title: "Share links — small files, laptop-friendly",
       range: "up to ~90 KB per link",
       points: [
-        "The encrypted payload lives in the URL fragment: aegishare.app/#a1.…",
+        "The encrypted payload lives in the URL fragment: aegishare.pages.dev/#a1.…",
         "Fragments never reach the server — Cloudflare Pages only sees a request for '/'. Zero server involvement, still works on static hosting.",
         "Passphrase mode: only the PBKDF2 salt rides in the link; the passphrase goes over a second channel. Auto mode: the key is in the link itself (whoever has the link can decrypt).",
         "Receiver opens the link, decryption happens instantly in their browser.",
@@ -277,6 +279,19 @@ function HowItWorks() {
         "Free public STUN servers assist NAT traversal; after that everything is direct P2P.",
       ],
       best: "Any two devices with browsers. The fast lane for real files.",
+    },
+    {
+      icon: Rocket,
+      title: "Download Booster — fast-fetch any URL",
+      range: "anything public · edge-cached",
+      points: [
+        "Paste a public URL (GitHub release, ISO mirror, slow CDN) and Aegis fetches it through a Cloudflare Pages Function at the edge.",
+        "The worker uses HTTP/2 multiplexing + warm TLS to popular origins, caches the body in the Cloudflare Cache API, and streams it to you at full link speed.",
+        "Subsequent downloads of the same URL hit the edge cache — instant. Great for files that everyone in the room needs to grab.",
+        "Range requests are forwarded transparently so resuming partial downloads works. Optional HMAC signing (set AEGIS_BOOSTER_SECRET) stops strangers using your deployment as an open proxy.",
+        "Privacy: the worker doesn't log or inspect bytes. For sensitive URLs use Link / P2P / QR instead — those keep bytes off any intermediary. Booster is for public files.",
+      ],
+      best: "Slow GitHub releases, throttled CDNs, public datasets — get them at your link speed, not the origin's.",
     },
   ];
 
@@ -320,7 +335,7 @@ function HowItWorks() {
         </p>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {methods.map((m) => (
           <Card key={m.title} className="relative overflow-hidden">
             <CardHeader>

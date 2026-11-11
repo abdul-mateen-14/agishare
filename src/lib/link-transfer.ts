@@ -2,7 +2,7 @@
  * Link mode — laptop-friendly small-file transfer via URL fragment.
  *
  * The encrypted payload (and, in auto-key mode, the AES key itself) lives in
- * the URL fragment:  https://aegishare.app/#a1.a.<salt>.<key>.<data>
+ * the URL fragment:  https://aegishare.pages.dev/#a1.a.<salt>.<key>.<data>
  *
  * URL fragments are NEVER sent to the server — Cloudflare Pages only ever
  * sees a request for "/". Decryption happens entirely in the receiver's

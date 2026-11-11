@@ -6,7 +6,7 @@
 export const BRAND = {
   name: "Aegis Share",
   shortName: "Aegis",
-  domain: "aegishare.app",
+  domain: "aegishare.pages.dev",
   tagline: "Encrypted offline + peer-to-peer file transfer",
   description:
     "Serverless, end-to-end encrypted file transfer. Small files travel as animated QR codes; large files stream directly browser-to-browser over a QR-handshaked WebRTC channel. No servers, no accounts — just a screen, a camera, and AES-GCM 256 encryption.",

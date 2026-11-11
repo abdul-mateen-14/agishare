@@ -275,6 +275,23 @@ async function testWrongKey() {
   assert(threw, "wrong key throws");
 }
 
+async function testBooster() {
+  console.log("\n[Test 7] Download Booster helpers");
+  const { isProbablyPublicUrl, guessFilename } = await import("../src/lib/booster");
+  assert(isProbablyPublicUrl("https://example.com/x.zip").ok, "https ok");
+  assert(isProbablyPublicUrl("http://example.com").ok, "http ok");
+  assert(!isProbablyPublicUrl("file:///etc/passwd").ok, "file:// rejected");
+  assert(!isProbablyPublicUrl("not a url").ok, "garbage rejected");
+  assert(!isProbablyPublicUrl("ftp://example.com").ok, "ftp rejected");
+
+  // filename guessing
+  assert(guessFilename("https://github.com/x/y/releases/download/v1/file.zip") === "file.zip",
+    "filename from path");
+  assert(guessFilename("https://example.com/") !== "", "fallback filename non-empty");
+  assert(guessFilename("https://example.com/path/file%20name.bin") === "file name.bin",
+    "filename url-decoded");
+}
+
 async function main() {
   console.log("Aegis Share round-trip tests");
   console.log("============================");
@@ -284,6 +301,7 @@ async function main() {
   await testFileCrypto();
   await testSignaling();
   await testWrongKey();
+  await testBooster();
   console.log("\n============================");
   console.log(`Pass: ${pass}  Fail: ${fail}`);
   if (fail > 0) process.exit(1);

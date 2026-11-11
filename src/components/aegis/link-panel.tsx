@@ -98,7 +98,7 @@ export function LinkSendPanel() {
 
       const combined = await encryptCombined(keyMaterial, strToBytes(envJson));
       const dataB64 = bytesToB64(combined);
-      const base = typeof window !== "undefined" ? window.location.origin : "https://aegishare.app";
+      const base = typeof window !== "undefined" ? window.location.origin : "https://aegishare.pages.dev";
       const url = buildLink(base, usePassphrase ? "passphrase" : "auto", saltB64, autoKeyB64, dataB64);
       setGenerated({
         url,
