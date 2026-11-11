@@ -52,3 +52,11 @@ prompt
 server.log
 # Skills directory
 /skills/
+# Aegis Share project-specific
+/out
+/.wrangler
+/download
+/mini-services
+/db
+/.zscripts
+/.agent-browser

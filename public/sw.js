@@ -21,7 +21,7 @@
  * deploys don't need a version bump.
  */
 
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 const SHELL_CACHE = `aegis-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `aegis-runtime-${CACHE_VERSION}`;
 
@@ -30,6 +30,7 @@ const PRECACHE_URLS = [
   "/index.html",
   "/robots.txt",
   "/404.html",
+  "/favicon.svg",
 ];
 
 self.addEventListener("install", (event) => {
