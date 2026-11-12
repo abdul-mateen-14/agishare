@@ -328,7 +328,7 @@ export function QrSendPanel() {
       </Card>
 
       {/* Right: QR display */}
-      <Card className="lg:w-[360px]">
+      <Card className="lg:w-[460px]">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-mono uppercase tracking-wider">
             Broadcast

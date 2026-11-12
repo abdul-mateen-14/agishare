@@ -61,7 +61,7 @@ export function QrDisplay() {
 
   if (status === "idle" || allFrames.length === 0) {
     return (
-      <div className="flex aspect-square w-full max-w-[320px] items-center justify-center rounded-2xl border border-dashed border-border bg-muted/30 p-8 text-center">
+      <div className="flex aspect-square w-full max-w-[420px] items-center justify-center rounded-2xl border border-dashed border-border bg-muted/30 p-8 text-center">
         <div className="space-y-1">
           <div className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
             QR stream
@@ -74,13 +74,16 @@ export function QrDisplay() {
     );
   }
 
-  const frameSize = 320;
+  // Render the QR canvas at 480px internal resolution (gives ~4 modules per
+  // pixel for a typical data frame, well within laptop webcam resolution)
+  // and let it scale up to the container on bigger screens.
+  const frameSize = 480;
   const sweepPos = (cursor / Math.max(1, allFrames.length)) * 100;
 
   return (
     <div className="space-y-4">
       {/* Big QR */}
-      <div className="relative mx-auto w-full max-w-[320px]">
+      <div className="relative mx-auto w-full max-w-[420px]">
         <div
           className={`relative overflow-hidden rounded-2xl bg-white p-3 shadow-lg ring-1 ring-primary/20 ${
             status === "broadcasting" ? "aegis-scan-pulse" : ""
@@ -153,10 +156,10 @@ export function QrDisplay() {
             Step 1 — Receiver scans this Key QR first
           </div>
           <div className="mt-2 flex items-center gap-3">
-            <div className="size-20 shrink-0 overflow-hidden rounded bg-white p-1">
+            <div className="size-28 shrink-0 overflow-hidden rounded bg-white p-1">
               <QrCanvas
                 value={keyFrame ?? ""}
-                size={72}
+                size={112}
                 className="size-full"
               />
             </div>

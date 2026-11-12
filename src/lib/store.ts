@@ -46,7 +46,7 @@ const initial: Omit<SendState, "setSend" | "reset"> = {
   hashHex: "",
   totalChunks: 0,
   cursor: 0,
-  frameMs: 220,
+  frameMs: 350,
   loops: 0,
   previewText: "",
   fileName: null,

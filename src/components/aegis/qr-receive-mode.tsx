@@ -373,16 +373,31 @@ export function QrReceivePanel() {
             </div>
             {/* idle / error overlay */}
             {cameraState.kind !== "running" && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center">
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-5 text-center">
                 {cameraState.kind === "error" ? (
                   <>
-                    <CameraOff className="size-8 text-destructive" />
-                    <p className="text-xs text-destructive max-w-[260px]">
+                    <CameraOff className="size-9 text-destructive shrink-0" />
+                    <p className="text-xs text-destructive max-w-[280px] leading-relaxed">
                       {cameraState.message}
                     </p>
-                    <Button size="sm" variant="outline" onClick={start}>
-                      Try again
-                    </Button>
+                    <div className="flex flex-wrap items-center justify-center gap-2">
+                      <Button size="sm" variant="outline" onClick={start}>
+                        Try again
+                      </Button>
+                      {cameraState.reason && cameraState.reason !== "in_use" && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => {
+                            const el = document.getElementById("aegis-paste-key-input");
+                            el?.focus();
+                            el?.scrollIntoView({ behavior: "smooth", block: "center" });
+                          }}
+                        >
+                          Use paste-key instead
+                        </Button>
+                      )}
+                    </div>
                   </>
                 ) : cameraState.kind === "starting" ? (
                   <>
@@ -484,11 +499,11 @@ export function QrReceivePanel() {
               </div>
             ) : (
               <div className="space-y-2">
-                <Label htmlFor="pk" className="text-xs">
+                <Label htmlFor="aegis-paste-key-input" className="text-xs">
                   Or paste the auto key (base64)
                 </Label>
                 <Input
-                  id="pk"
+                  id="aegis-paste-key-input"
                   type="text"
                   value={pasteKey}
                   onChange={(e) => setPasteKey(e.target.value)}

@@ -13,7 +13,64 @@ type CameraState =
   | { kind: "idle" }
   | { kind: "starting" }
   | { kind: "running"; track: MediaStreamTrack; stream: MediaStream }
-  | { kind: "error"; message: string };
+  | { kind: "error"; message: string; reason?: CameraErrorReason };
+
+export type CameraErrorReason =
+  | "permission_denied"
+  | "no_camera"
+  | "in_use"
+  | "not_supported"
+  | "unknown";
+
+/**
+ * Translate a browser getUserMedia error into an actionable, human message
+ * plus a stable reason code the UI can branch on (e.g. show a "use paste-key
+ * instead" fallback button when the camera is unavailable).
+ *
+ * Browsers throw DOMException with these .name values:
+ *   NotAllowedError       — user denied camera permission (or it was revoked)
+ *   NotFoundError         — no camera hardware matches the constraints
+ *   NotReadableError      — camera is in use by another app (Zoom/Teams/etc)
+ *   OverconstrainedError  — facingMode:'environment' unsupported (laptops)
+ *   SecurityError         — non-HTTPS context (camera needs HTTPS)
+ *   AbortError            — interrupted; usually transient
+ */
+export function humanizeCameraError(e: unknown): { message: string; reason: CameraErrorReason } {
+  const name = (e as any)?.name as string | undefined;
+  const raw = e instanceof Error ? e.message : String(e);
+  switch (name) {
+    case "NotAllowedError":
+    case "SecurityError":
+      return {
+        reason: "permission_denied",
+        message:
+          "Camera permission was denied. Click the camera icon in your browser's address bar, choose 'Allow', then press Start again.",
+      };
+    case "NotFoundError":
+    case "OverconstrainedError":
+      return {
+        reason: "no_camera",
+        message:
+          "No camera found that matches the requested mode. If your laptop has no webcam (or only a virtual one), use the paste-key path instead — see the Key panel below.",
+      };
+    case "NotReadableError":
+      return {
+        reason: "in_use",
+        message:
+          "Camera is in use by another app (Zoom, Teams, Meet, OBS, etc). Close it and press Start again.",
+      };
+    case "AbortError":
+      return {
+        reason: "unknown",
+        message: "Camera request was interrupted. Press Start to try again.",
+      };
+    default:
+      return {
+        reason: "unknown",
+        message: `Camera error: ${raw || "unknown"}`,
+      };
+  }
+}
 
 /**
  * Camera + jsQR scanning hook.
@@ -82,8 +139,12 @@ export function useCameraScanner(
     setActive(true);
     try {
       if (!navigator.mediaDevices?.getUserMedia) {
-        throw new Error("Camera API not available — use HTTPS or a modern browser.");
+        throw new Error("Camera API not available — open this page over HTTPS in a modern browser.");
       }
+      // Note: facingMode 'environment' is a hint, not a hard constraint
+      // (`ideal` instead of `exact`), so laptops with only a front webcam
+      // still satisfy the request — they just use the front camera, which
+      // is fine for scanning a screen.
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
         video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
@@ -92,7 +153,7 @@ export function useCameraScanner(
       const video = videoRef.current;
       if (!video) {
         stream.getTracks().forEach((t) => t.stop());
-        setCameraState({ kind: "error", message: "Video element missing" });
+        setCameraState({ kind: "error", message: "Video element missing.", reason: "unknown" });
         setActive(false);
         return;
       }
@@ -129,8 +190,12 @@ export function useCameraScanner(
             canvas.height = h;
             ctx.drawImage(video, 0, 0, w, h);
             const imgData = ctx.getImageData(0, 0, w, h);
+            // attemptBoth lets jsQR try both the natural and inverted color
+            // order — costs ~1ms extra per frame but hugely improves decode
+            // success on screens that confuse jsQR's luminance estimate
+            // (white QR on a slightly-off-white screen, dark themes, etc).
             const code = jsQR(imgData.data, w, h, {
-              inversionAttempts: "dontInvert",
+              inversionAttempts: "attemptBoth",
             });
             if (code && code.data) {
               const now = performance.now();
@@ -149,11 +214,11 @@ export function useCameraScanner(
       };
       rafRef.current = requestAnimationFrame(tick);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
       runningRef.current = false;
-      setCameraState({ kind: "error", message: msg });
+      const { message, reason } = humanizeCameraError(e);
+      setCameraState({ kind: "error", message, reason });
       setActive(false);
-      onErrorRef.current?.(msg);
+      onErrorRef.current?.(message);
     }
   }, []);
 

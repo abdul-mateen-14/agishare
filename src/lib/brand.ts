@@ -25,10 +25,17 @@ export const BRAND = {
 export const PROTOCOL = {
   /** Magic prefix so receivers can recognise Aegis frames and ignore other QRs. */
   magic: "AEGIS1",
-  /** Max raw binary bytes per chunk after base64 + JSON overhead (QR mode). */
-  chunkBytes: 850,
-  /** Default ms the sender dwells on each QR frame. */
-  defaultFrameMs: 220,
+  /**
+   * Max raw binary bytes per chunk after base64 + JSON overhead (QR mode).
+   * Kept at 500 (down from 850) so each QR fits in version ~22-24 with M
+   * error correction — much easier to scan with laptop webcams and phone
+   * cameras in poor lighting. Trade-off: more frames per transfer, but
+   * each frame is reliably decodable.
+   */
+  chunkBytes: 500,
+  /** Default ms the sender dwells on each QR frame. 350ms is the sweet spot
+   *  for laptop webcams (which have slower autofocus than phone cameras). */
+  defaultFrameMs: 350,
   /** PBKDF2 iterations for passphrase-derived keys. */
   pbkdf2Iterations: 150_000,
   /** Salt length in bytes for PBKDF2. */

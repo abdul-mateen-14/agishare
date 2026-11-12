@@ -36,7 +36,13 @@ export function QrCanvas({
       return;
     }
     QRCode.toCanvas(canvas, value, {
-      errorCorrectionLevel: "Q",
+      // M (15%) instead of Q (25%) — lets the same payload fit in a smaller QR
+      // version (= fewer modules = bigger modules at any given pixel size),
+      // which is the difference between scannable and unscannable on laptop
+      // webcams. We still get enough redundancy to survive glare / partial
+      // occlusion for short payloads; for long payloads the modules would
+      // be too dense with Q anyway.
+      errorCorrectionLevel: "M",
       margin: 2,
       width: size,
       color: {
