@@ -15,6 +15,19 @@ type CameraState =
   | { kind: "running"; track: MediaStreamTrack; stream: MediaStream }
   | { kind: "error"; message: string };
 
+/**
+ * Camera + jsQR scanning hook.
+ *
+ * IMPORTANT: the per-frame scan loop (`tick`) must read live state, not
+ * closure-captured state. React's `useCallback` closes over the values from
+ * the render where the callback was last memoized — so `active` and
+ * `cameraState.kind` captured at the start of `start()` would still be
+ * their pre-start values (`false` / `"idle"`) by the time `tick` runs,
+ * causing the loop to bail out on frame 1 and never decode a single QR.
+ *
+ * We use refs (`runningRef`, `stoppedRef`) for everything the loop reads so
+ * the latest values are always seen.
+ */
 export function useCameraScanner(
   onResult: (r: ScanResult) => void,
   onError?: (msg: string) => void,
@@ -24,28 +37,47 @@ export function useCameraScanner(
   const rafRef = React.useRef<number | null>(null);
   const [cameraState, setCameraState] = React.useState<CameraState>({ kind: "idle" });
   const [active, setActive] = React.useState(false);
-  // throttle: only emit the same QR data once per ~250ms window
+
+  // Refs the scan loop reads. These always hold the latest value, regardless
+  // of which render's `start` closure is currently running.
+  const runningRef = React.useRef(false);
+  const stoppedRef = React.useRef(false);
+  // Keep `onResult` / `onError` fresh too — caller may pass new arrow fns
+  // each render; we want the latest one inside the long-lived scan loop.
+  const onResultRef = React.useRef(onResult);
+  const onErrorRef = React.useRef(onError);
+  React.useEffect(() => { onResultRef.current = onResult; }, [onResult]);
+  React.useEffect(() => { onErrorRef.current = onError; }, [onError]);
+
+  // throttle: only emit the same QR data once per ~240ms window
   const lastRef = React.useRef<{ data: string; ts: number } | null>(null);
 
-  // Reset state on video element changes
   const stop = React.useCallback(() => {
+    stoppedRef.current = true;
+    runningRef.current = false;
     if (rafRef.current) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     }
-    if (cameraState.kind === "running") {
-      cameraState.track.stop();
-      cameraState.stream.getTracks().forEach((t) => t.stop());
-    }
+    // Stop any active stream tracks.
+    setCameraState((cur) => {
+      if (cur.kind === "running") {
+        cur.track.stop();
+        cur.stream.getTracks().forEach((t) => t.stop());
+      }
+      return { kind: "idle" };
+    });
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
-    setCameraState({ kind: "idle" });
     setActive(false);
-  }, [cameraState]);
+  }, []);
 
   const start = React.useCallback(async () => {
-    if (cameraState.kind === "running" || cameraState.kind === "starting") return;
+    if (runningRef.current || stoppedRef.current === false) {
+      // already running, or this is the very first call before any stop
+    }
+    stoppedRef.current = false;
     setCameraState({ kind: "starting" });
     setActive(true);
     try {
@@ -67,17 +99,29 @@ export function useCameraScanner(
       video.srcObject = stream;
       video.setAttribute("playsinline", "true");
       await video.play();
+
+      // Mark running BEFORE setting state so the scan loop (which may tick
+      // on the very next animation frame) sees the right flag.
+      runningRef.current = true;
       setCameraState({ kind: "running", track, stream });
 
-      // scan loop
       const canvas = canvasRef.current ?? document.createElement("canvas");
       canvasRef.current = canvas;
       const ctx = canvas.getContext("2d", { willReadFrequently: true });
       if (!ctx) throw new Error("Canvas 2d context unavailable");
 
       const tick = () => {
-        if (!active && rafRef.current !== null) return;
-        if (video.readyState === video.HAVE_ENOUGH_DATA && cameraState.kind === "running") {
+        // Stop-signal check via ref (not closure-captured state).
+        if (stoppedRef.current) {
+          rafRef.current = null;
+          return;
+        }
+        if (!runningRef.current) {
+          // Not running yet (still starting) — keep polling until ready.
+          rafRef.current = requestAnimationFrame(tick);
+          return;
+        }
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
           const w = video.videoWidth;
           const h = video.videoHeight;
           if (w && h) {
@@ -93,7 +137,7 @@ export function useCameraScanner(
               const last = lastRef.current;
               if (!last || last.data !== code.data || now - last.ts > 240) {
                 lastRef.current = { data: code.data, ts: now };
-                onResult({
+                onResultRef.current({
                   data: code.data,
                   location: code.location,
                 });
@@ -106,21 +150,27 @@ export function useCameraScanner(
       rafRef.current = requestAnimationFrame(tick);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
+      runningRef.current = false;
       setCameraState({ kind: "error", message: msg });
       setActive(false);
-      onError?.(msg);
+      onErrorRef.current?.(msg);
     }
-  }, [cameraState.kind]);
+  }, []);
 
   // cleanup on unmount
   React.useEffect(() => {
     return () => {
+      stoppedRef.current = true;
+      runningRef.current = false;
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      if (cameraState.kind === "running") {
-        cameraState.stream.getTracks().forEach((t) => t.stop());
-      }
+      setCameraState((cur) => {
+        if (cur.kind === "running") {
+          cur.stream.getTracks().forEach((t) => t.stop());
+        }
+        return { kind: "idle" };
+      });
     };
-  }, [cameraState]);
+  }, []);
 
   return {
     videoRef,
