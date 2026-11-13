@@ -61,7 +61,7 @@ export function QrDisplay() {
 
   if (status === "idle" || allFrames.length === 0) {
     return (
-      <div className="flex aspect-square w-full max-w-[420px] items-center justify-center rounded-2xl border border-dashed border-border bg-muted/30 p-8 text-center">
+      <div className="flex aspect-square w-full max-w-[480px] items-center justify-center rounded-2xl border border-dashed border-border bg-muted/30 p-8 text-center">
         <div className="space-y-1">
           <div className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
             QR stream
@@ -74,16 +74,18 @@ export function QrDisplay() {
     );
   }
 
-  // Render the QR canvas at 480px internal resolution (gives ~4 modules per
-  // pixel for a typical data frame, well within laptop webcam resolution)
-  // and let it scale up to the container on bigger screens.
-  const frameSize = 480;
+  // Render the QR canvas at 640px internal resolution. With 250-byte chunks
+  // and M error correction, each data frame fits in QR version ~13-15 =
+  // 69-77 modules, giving ~8-9 pixels per module at 640px — comfortably
+  // scannable by 720p laptop webcams. The canvas is then CSS-scaled to
+  // fit the container (max 480px wide).
+  const frameSize = 640;
   const sweepPos = (cursor / Math.max(1, allFrames.length)) * 100;
 
   return (
     <div className="space-y-4">
       {/* Big QR */}
-      <div className="relative mx-auto w-full max-w-[420px]">
+      <div className="relative mx-auto w-full max-w-[480px]">
         <div
           className={`relative overflow-hidden rounded-2xl bg-white p-3 shadow-lg ring-1 ring-primary/20 ${
             status === "broadcasting" ? "aegis-scan-pulse" : ""

@@ -257,15 +257,15 @@ export function QrSendPanel() {
               <span className="font-mono">{store.frameMs}ms</span>
             </div>
             <Slider
-              min={80}
-              max={800}
+              min={120}
+              max={1200}
               step={20}
               value={[store.frameMs]}
               onValueChange={(v) => store.setSend({ frameMs: v[0] ?? store.frameMs })}
             />
             <p className="text-[11px] text-muted-foreground">
-              Slower = easier to scan, faster = quicker transfer. ~200ms works on
-              most phones.
+              Slower = easier to scan, faster = quicker transfer. ~350ms works
+              on most phones; laptops may need 500ms+.
             </p>
           </div>
 
@@ -328,7 +328,7 @@ export function QrSendPanel() {
       </Card>
 
       {/* Right: QR display */}
-      <Card className="lg:w-[460px]">
+      <Card className="lg:w-[520px]">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-mono uppercase tracking-wider">
             Broadcast

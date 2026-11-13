@@ -21,7 +21,7 @@
  * deploys don't need a version bump.
  */
 
-const CACHE_VERSION = "v5";
+const CACHE_VERSION = "v6";
 const SHELL_CACHE = `aegis-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `aegis-runtime-${CACHE_VERSION}`;
 

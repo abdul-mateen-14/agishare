@@ -117,20 +117,39 @@ export function QrReceivePanel() {
     let cur = useReceiveStore.getState();
 
     // Lock to a session, or adopt a new one if the sender restarted.
+    // Note: only chunk 0 carries the full hash `h`. Chunks 1+ omit it to
+    // keep the QR small. Session-continuity for chunks 1+ is checked via
+    // sessionId + totalChunks; the full hash is captured when chunk 0
+    // arrives (and re-verified against any later chunk-0 we see).
     if (!cur.sessionId) {
       useReceiveStore.setState({
         sessionId: df.s,
         expectedTotal: df.n,
-        expectedHash: df.h,
+        // df.h is undefined for chunks 1+; we'll capture it when chunk 0 arrives.
+        expectedHash: df.h ?? "",
       });
       cur = useReceiveStore.getState();
     } else if (cur.sessionId !== df.s) {
       // Different session — skip silently. We're locked to the first one
       // until the user resets.
       return;
-    } else if (cur.expectedTotal !== df.n || cur.expectedHash !== df.h) {
+    } else if (cur.expectedTotal !== df.n) {
+      // Same session but totalChunks changed — sender restarted. Reset.
       useReceiveStore.setState({
         expectedTotal: df.n,
+        expectedHash: df.h ?? cur.expectedHash,
+        chunks: new Map(),
+        decryptedB64: null,
+        decryptedText: null,
+        fileName: null,
+        fileMime: null,
+        error: null,
+      });
+      cur = useReceiveStore.getState();
+    } else if (df.h && df.h !== cur.expectedHash) {
+      // Same session, same totalChunks, but chunk 0's hash differs from
+      // what we captured before — sender restarted with a new payload.
+      useReceiveStore.setState({
         expectedHash: df.h,
         chunks: new Map(),
         decryptedB64: null,
@@ -142,6 +161,13 @@ export function QrReceivePanel() {
       cur = useReceiveStore.getState();
     }
 
+    // If this is chunk 0 and we have a hash, make sure we capture it (the
+    // very first chunk we saw might have been a non-zero chunk without h).
+    if (df.i === 0 && df.h && cur.expectedHash !== df.h) {
+      useReceiveStore.setState({ expectedHash: df.h });
+      cur = useReceiveStore.getState();
+    }
+
     // Store the chunk (idempotent)
     if (cur.chunks.has(df.i)) return;
     const chunkBytes = b64ToBytes(df.d);
@@ -149,7 +175,15 @@ export function QrReceivePanel() {
     newChunks.set(df.i, chunkBytes);
     useReceiveStore.setState({ chunks: newChunks, status: "scanning" });
 
-    // Maybe complete?
+    // Maybe complete? Bail out if we don't have the hash yet — the user
+    // needs to keep scanning until they see chunk 0.
+    if (!cur.expectedHash) {
+      useReceiveStore.setState({
+        status: "scanning",
+        error: "Waiting for chunk 0 of this session to capture the integrity hash — keep scanning.",
+      });
+      return;
+    }
     if (newChunks.size >= cur.expectedTotal) {
       await tryAssembleAndDecrypt(
         cur.sessionId ?? df.s,
@@ -562,6 +596,17 @@ export function QrReceivePanel() {
             {error && (
               <div className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive">
                 {error}
+              </div>
+            )}
+            {cameraState.kind === "running" && have === 0 && !error && (
+              <div className="rounded-md border border-primary/30 bg-primary/5 p-2.5 text-xs leading-relaxed">
+                <div className="font-medium text-primary">No frames detected yet</div>
+                <ul className="mt-1 space-y-0.5 text-muted-foreground">
+                  <li>• Move the laptop closer so the QR fills ~60% of the camera frame</li>
+                  <li>• Increase sender screen brightness (glare is bad, dim is worse)</li>
+                  <li>• Hold still — laptop webcams need ~1s to autofocus per frame</li>
+                  <li>• If it still won&apos;t decode, ask the sender to slow the frame dwell to 500ms+</li>
+                </ul>
               </div>
             )}
             {busy && (

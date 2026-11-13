@@ -27,12 +27,13 @@ export const PROTOCOL = {
   magic: "AEGIS1",
   /**
    * Max raw binary bytes per chunk after base64 + JSON overhead (QR mode).
-   * Kept at 500 (down from 850) so each QR fits in version ~22-24 with M
-   * error correction — much easier to scan with laptop webcams and phone
-   * cameras in poor lighting. Trade-off: more frames per transfer, but
-   * each frame is reliably decodable.
+   * Kept at 250 (down from 500) so each DATA QR fits in version ~13-15 with
+   * M error correction = 69-77 modules. At a 640px canvas that gives ~8-9
+   * pixels per module — comfortably scannable by 720p laptop webcams.
+   * Trade-off: more frames per transfer (a 1KB message is ~5 chunks now),
+   * but every frame is reliably decodable.
    */
-  chunkBytes: 500,
+  chunkBytes: 250,
   /** Default ms the sender dwells on each QR frame. 350ms is the sweet spot
    *  for laptop webcams (which have slower autofocus than phone cameras). */
   defaultFrameMs: 350,

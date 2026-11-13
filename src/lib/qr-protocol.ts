@@ -51,7 +51,10 @@ export type DataFrame = {
   i: number; // chunk index, 0-based
   n: number; // total chunks
   s: string; // session id (short)
-  h: string; // sha256 hex of the full ciphertext
+  /** Full sha256 hex of ciphertext. ONLY chunk 0 carries this. Chunks 1+
+   *  omit it (the receiver captures `h` from chunk 0 and uses it for both
+   *  session-continuity checks and final hash verification). */
+  h?: string;
   d: string; // base64 chunk of ciphertext
 };
 
@@ -114,14 +117,16 @@ export async function chunkPayload(
   const frames: string[] = [];
   for (let i = 0; i < totalChunks; i++) {
     const slice = ctBytes.subarray(i * chunkSize, (i + 1) * chunkSize);
-    const frame: DataFrame = {
-      m: "D",
-      i,
-      n: totalChunks,
-      s: sessionId,
-      h: hashHex,
-      d: bytesToB64(slice),
-    };
+    // Only chunk 0 carries the full 64-char SHA-256 hash. Chunks 1+ omit
+    // the `h` field entirely — saving ~70 chars/frame, which lets us use
+    // a much smaller QR version (more pixels per module = scannable by
+    // laptop webcams). The receiver captures `h` from chunk 0 and uses
+    // it for both session-continuity checks and final hash verification.
+    // If chunk 0 hasn't been seen yet the receiver keeps scanning until
+    // the broadcast loops back to it.
+    const frame: DataFrame = i === 0
+      ? { m: "D", i, n: totalChunks, s: sessionId, h: hashHex, d: bytesToB64(slice) }
+      : { m: "D", i, n: totalChunks, s: sessionId, d: bytesToB64(slice) };
     frames.push(encodeFrame(frame));
   }
   return { sessionId, totalChunks, hashHex, frames };

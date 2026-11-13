@@ -105,13 +105,15 @@ async function simulateReceiveAndDecrypt(decodedFrames, opts) {
       if (!sessionId) {
         sessionId = frame.s;
         expectedTotal = frame.n;
-        expectedHash = frame.h;
       }
       if (frame.s !== sessionId) throw new Error(`session mismatch`);
+      // Capture hash from whichever chunk carries it (only chunk 0 does now).
+      if (frame.h) expectedHash = frame.h;
       if (!chunks.has(frame.i)) chunks.set(frame.i, b64ToBytes(frame.d));
     }
   }
 
+  if (!expectedHash) throw new Error("no hash captured (chunk 0 not seen)");
   if (chunks.size < expectedTotal) throw new Error(`incomplete: ${chunks.size}/${expectedTotal}`);
   const result = reassemble(sessionId, chunks, expectedTotal, expectedHash);
   if (!result.ok) throw new Error(`reassemble failed`);
@@ -191,7 +193,7 @@ console.log(`\n[Test 5] QR decode at sizes (240 / 320 / 400 / 480 / 640)`);
   }
 }
 
-console.log(`\n[Test 6] Frame size for current 850B chunks`);
+console.log(`\n[Test 6] Frame size for current chunks (verify chunk 0 carries hash, others don't)`);
 {
   const msg = "Y".repeat(900);
   const env = textToEnvelope(msg);
@@ -201,8 +203,17 @@ console.log(`\n[Test 6] Frame size for current 850B chunks`);
   const combinedB64 = bytesToB64(combined);
   const chunked = await chunkPayload(combinedB64, "abc123");
   console.log(`  total chunks: ${chunked.totalChunks}`);
-  console.log(`  first data frame: ${chunked.frames[0].length} chars`);
-  console.log(`  second data frame (if exists): ${chunked.frames[1]?.length || "n/a"} chars`);
+  for (let i = 0; i < chunked.totalChunks; i++) {
+    const f = chunked.frames[i];
+    // Parse to check hash presence
+    const parsed = JSON.parse(f.slice(PROTOCOL.magic.length));
+    console.log(`  frame ${i}: ${f.length} chars  hasHash=${!!parsed.h}`);
+  }
+  // Verify chunk 0 has hash, others don't
+  const f0 = JSON.parse(chunked.frames[0].slice(PROTOCOL.magic.length));
+  const f1 = chunked.totalChunks > 1 ? JSON.parse(chunked.frames[1].slice(PROTOCOL.magic.length)) : null;
+  check("chunk 0 has full hash", !!f0.h && f0.h.length === 64);
+  check("chunk 1+ omits hash", !f1 || !f1.h);
 }
 
 console.log(`\n============================`);
