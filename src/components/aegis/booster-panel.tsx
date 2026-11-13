@@ -173,6 +173,17 @@ export function BoosterPanel() {
             {url && !urlOk.ok && phase !== "downloading" && (
               <p className="text-[11px] text-destructive">{urlOk.reason}</p>
             )}
+            {url && urlOk.ok && phase === "idle" && /github\.com\/[^/]+\/[^/]+\/releases(?!\/download)/.test(url) && (
+              <p className="text-[11px] text-amber-600 dark:text-amber-400 leading-relaxed">
+                This looks like a GitHub release <b>page</b> URL, not the
+                direct asset URL. The page returns HTML, not the file. Open
+                the page in your browser, scroll to <b>Assets</b>, right-click
+                the file (e.g. <code className="font-mono">app.apk</code>) →
+                &quot;Copy link address&quot; — the URL you get back should
+                contain <code className="font-mono">/releases/download/...</code>.
+                Paste that here.
+              </p>
+            )}
           </div>
 
           {/* action row */}
@@ -287,11 +298,11 @@ export function BoosterPanel() {
           )}
 
           {error && phase === "error" && (
-            <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive space-y-1">
+            <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive space-y-2">
               <div className="flex items-center gap-2 font-medium">
                 <XCircle className="size-3.5" /> Failed
               </div>
-              <div className="font-mono break-words">{error}</div>
+              <div className="whitespace-pre-line break-words leading-relaxed">{error}</div>
               <p className="text-muted-foreground">
                 Note: the edge worker runs on Cloudflare Pages Functions. In
                 the local dev server it isn&apos;t active — try it on the
