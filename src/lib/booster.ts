@@ -116,6 +116,14 @@ export async function probeUrl(url: string): Promise<BoosterMeta> {
       `This URL returns an HTML page, not a file (mime: ${meta.mime}). You likely pasted a release page URL instead of the direct asset URL. For GitHub: open the release page in your browser, right-click the asset → "Copy link address", then paste that URL (it should contain "/releases/download/...").`,
     );
   }
+  // The worker passes the upstream status through. If the probe got a 4xx/5xx
+  // upstream status (e.g. GitHub returned 404), don't let the user click
+  // Download — they'd just get the error body saved as the file.
+  if (meta.status && meta.status >= 400) {
+    throw new Error(
+      `URL returned HTTP ${meta.status} — the file is not available. Check the URL spelling. For GitHub releases, open the release page in your browser, right-click the asset → "Copy link address", then paste that direct URL.`,
+    );
+  }
   return meta;
 }
 

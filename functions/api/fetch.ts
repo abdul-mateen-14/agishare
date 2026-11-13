@@ -286,22 +286,22 @@ function looksLikeBinaryFile(u: URL): boolean {
 }
 
 /**
- * Returns a human-readable error message if the upstream returned HTML for
- * a URL that looks like a binary file, OR if the upstream returned a
- * non-2xx status (404, 5xx) regardless of content type. Returns null when
- * the response looks legitimate (binary body + 2xx status).
+ * Returns a human-readable error message if the upstream returned an
+ * error response that we shouldn't pass through to the user. Returns null
+ * when the response looks legitimate (2xx status with a non-HTML body).
  *
  * This is the fix for "I downloaded an APK and got an HTML page" — the user
  * typically pasted either:
  *   1. A GitHub release PAGE url (github.com/.../releases/latest)
  *      instead of the direct asset url
  *      (github.com/.../releases/download/v1/file.apk)
- *   2. A URL that 404s — GitHub returns an HTML 404 page
- *   3. A URL behind a login wall (returns HTML login form)
+ *   2. A URL that 404s — GitHub returns an HTML 404 page (or plain "Not
+ *      Found" for direct asset URLs that don't exist)
+ *   3. A URL behind a login wall (returns HTML login form, 401/403)
  *
- * Without this check, the worker would stream the HTML to the client with
- * the URL's filename, and the client would save HTML content as e.g.
- * "app.apk".
+ * Without this check, the worker would stream the error body to the client
+ * with the URL's filename, and the client would save e.g. HTML or
+ * "Not Found" as "app.apk".
  */
 function htmlForBinaryCheck(u: URL, mime: string, status: number): string | null {
   const isHtml = mime.toLowerCase().startsWith("text/html");
@@ -316,6 +316,16 @@ function htmlForBinaryCheck(u: URL, mime: string, status: number): string | null
       return `URL returned ${status} — the file requires authentication. The booster only works on public URLs.`;
     }
     return `URL returned HTTP ${status} with an HTML body (likely an error or interstitial page), not the actual file.`;
+  }
+
+  // 4xx / 5xx with non-HTML body for a binary-looking URL (e.g. GitHub
+  // returns plain "Not Found" for non-existent /releases/download/... URLs).
+  // Don't save a 10-byte "Not Found" text as a .apk file.
+  if (status >= 400 && isBinary) {
+    if (status === 404) {
+      return `URL returned 404 — the file does not exist at this URL. Check the spelling of the asset name and the release tag. For GitHub releases, open the release page in your browser and right-click the asset → "Copy link address", then paste that direct URL.`;
+    }
+    return `URL returned HTTP ${status}. The file is not available at this URL.`;
   }
 
   // 2xx but HTML body for a binary-looking URL — login wall, GitHub
